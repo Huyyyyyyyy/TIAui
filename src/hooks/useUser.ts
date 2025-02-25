@@ -32,6 +32,10 @@ export function useUser() {
     }
   };
 
+  const sendTransaction = async () => {
+    
+  }
+
   const handleImportWallet = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
