@@ -4,6 +4,7 @@ import "./index.css";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
 import AppRouter from "./routes/AppRouter";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { sepolia } from "viem/chains";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -14,6 +15,7 @@ createRoot(document.getElementById("root")!).render(
           appearance: { theme: "dark" },
           loginMethods: ["email"],
           embeddedWallets: { ethereum: { createOnLogin: "off" } },
+          defaultChain: sepolia,
         }}
       >
         <AppRouter />

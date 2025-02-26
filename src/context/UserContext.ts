@@ -1,21 +1,27 @@
 import { createContext } from "react";
-import { TUserImport, TUserStatus } from "../types/user";
+import { TUserStatus } from "../types/user";
 import { ConnectedWallet, LoginModalOptions, User } from "@privy-io/react-auth";
+import { InfuraProvider } from "ethers";
 
 export type UserContextType = {
-  data: {
+  userData: {
     user: User | null;
     status: TUserStatus;
-    userImport: TUserImport;
     authenticated: boolean;
     ready: boolean;
-    wallet: ConnectedWallet | undefined;
   };
-  functions: {
+  walletData: {
+    wallet: ConnectedWallet | undefined;
+    infuraProvider: InfuraProvider;
+    privateKey: string;
+  };
+  transactionData: { txSentInfura: string; selectedToken: string };
+  userFunction: {
     get: (e: React.FormEvent) => void;
-    handleImportWallet: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => void;
+    login: (e: LoginModalOptions | React.MouseEvent<any, any>) => void;
+    walletLogout: () => Promise<void>;
+  };
+  walletFunction: {
     exportWallet: (
       options?:
         | {
@@ -23,9 +29,13 @@ export type UserContextType = {
           }
         | React.MouseEvent<any, any>
     ) => Promise<void>;
-    getWallet: (address: string) => void;
-    login: (e: LoginModalOptions | React.MouseEvent<any, any>) => void;
-    logout: () => Promise<void>;
+    setPrivateKey: React.Dispatch<React.SetStateAction<string>>;
+    connectCurrentWallet: () => Promise<void>;
+    importNewWallet: () => Promise<void>;
+  };
+  transactionFunction: {
+    handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    setSelectedToken: React.Dispatch<React.SetStateAction<string>>;
   };
 };
 
