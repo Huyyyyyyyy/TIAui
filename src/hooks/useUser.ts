@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { TUserStatus } from "../types/user";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   ConnectedWallet,
@@ -18,14 +17,13 @@ import {
 
 export function useUser() {
   //user
-  const [status, setStatus] = useState<TUserStatus>("idle");
   const { authenticated, ready, user } = usePrivy();
   const { login, logout } = usePrivy();
 
   //walet
-  const { wallets } = useWallets();
-  const [wallet, setWallet] = useState<ConnectedWallet>();
-  const { exportWallet, linkWallet } = usePrivy();
+  const { wallets, ready: walletReady } = useWallets();
+  const [wallet, setWallet] = useState<ConnectedWallet>(wallets[0]);
+  const { exportWallet } = usePrivy();
   const { importWallet } = useImportWallet();
   const [privateKey, setPrivateKey] = useState<string>("");
   const [infuraProvider] = useState<InfuraProvider>(
@@ -40,16 +38,8 @@ export function useUser() {
   const navigate = useNavigate();
 
   //user function
-  const get = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus("loading");
+  const get = () => {
     login();
-    if (ready && authenticated) {
-      setStatus("success");
-      navigate("/home");
-    } else {
-      setStatus("error");
-    }
   };
 
   const walletLogout = async () => {
@@ -59,21 +49,31 @@ export function useUser() {
       // Reset all states
       setWallet(undefined!); // Remove wallet
       setPrivateKey(""); // Clear private key
-      setStatus("idle"); // Reset user status
       setSelectedToken(TOKEN[0].address); // Reset token selection
       // Navigate back to login page
       wallets.map((w) => {
+        w.unlink();
         w.disconnect();
         console.log("disconnection : ", w.address);
       });
-
       navigate("/home");
+      window.location.reload();
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
   //wallet function
+  useEffect(() => {
+    if (authenticated && ready && walletReady) {
+      const timer = setTimeout(() => {
+        connectCurrentWallet().then(() => {});
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [authenticated, ready, walletReady]);
+
   const connectCurrentWallet = async () => {
     try {
       if (!ready || !authenticated) {
@@ -236,7 +236,6 @@ export function useUser() {
   return {
     userData: {
       user,
-      status,
       authenticated,
       ready,
     },
@@ -244,13 +243,13 @@ export function useUser() {
       wallet,
       infuraProvider,
       privateKey,
+      walletReady,
     },
     transactionData: {
       txSentInfura,
       selectedToken,
     },
     userFunction: {
-      login,
       walletLogout,
       get,
     },

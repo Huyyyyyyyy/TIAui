@@ -14,7 +14,7 @@ const styleText: CommonProps = {
 const ImportForm = () => {
   const {
     userData: { ready, authenticated },
-    walletData: { wallet, privateKey },
+    walletData: { wallet, privateKey, walletReady },
     transactionData: { txSentInfura, selectedToken },
     userFunction: {},
     walletFunction: { setPrivateKey, connectCurrentWallet, importNewWallet },
@@ -23,28 +23,35 @@ const ImportForm = () => {
 
   return !wallet?.address ? (
     <>
-      <div>
-        <input
-          type="text"
-          value={privateKey}
-          onChange={(e) => setPrivateKey(e.target.value)}
-          placeholder="Enter your private key"
-        />
-        <button onClick={importNewWallet} disabled={!authenticated || !ready}>
-          Import new wallet
-        </button>
+      {walletReady ? (
+        <div>
+          <input
+            type="text"
+            value={privateKey}
+            onChange={(e) => setPrivateKey(e.target.value)}
+            placeholder="Enter your private key"
+          />
+          <button onClick={importNewWallet} disabled={!authenticated || !ready}>
+            Import new wallet
+          </button>
 
-        <button
-          onClick={connectCurrentWallet}
-          disabled={!authenticated || !ready}
-        >
-          Connect current wallet
-        </button>
-      </div>
+          <button
+            onClick={connectCurrentWallet}
+            disabled={!authenticated || !ready}
+          >
+            Connect current wallet
+          </button>
+        </div>
+      ) : (
+        <div>Wallet is not ready</div>
+      )}
     </>
   ) : (
     <>
-      <p>{wallet ? wallet.address : ""}</p>
+      <p>
+        {wallet ? wallet.address : ""}
+        {}
+      </p>
       <h3> Fill the form to send ETH </h3>
       <div>
         <form onSubmit={handleSubmit}>

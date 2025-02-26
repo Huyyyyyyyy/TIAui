@@ -1,24 +1,20 @@
 import { createContext } from "react";
-import { TUserStatus } from "../types/user";
-import { ConnectedWallet, LoginModalOptions, User } from "@privy-io/react-auth";
-import { InfuraProvider } from "ethers";
+import { ConnectedWallet, User } from "@privy-io/react-auth";
 
 export type UserContextType = {
   userData: {
     user: User | null;
-    status: TUserStatus;
     authenticated: boolean;
     ready: boolean;
   };
   walletData: {
     wallet: ConnectedWallet | undefined;
-    infuraProvider: InfuraProvider;
     privateKey: string;
+    walletReady: boolean;
   };
   transactionData: { txSentInfura: string; selectedToken: string };
   userFunction: {
     get: (e: React.FormEvent) => void;
-    login: (e: LoginModalOptions | React.MouseEvent<any, any>) => void;
     walletLogout: () => Promise<void>;
   };
   walletFunction: {

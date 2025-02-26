@@ -15,7 +15,7 @@ const styleButton: CommonProps = {
 const Menu = () => {
   const {
     userData: { user, authenticated, ready },
-    userFunction: { login, walletLogout },
+    userFunction: { get, walletLogout },
   } = useContext(UserContext);
 
   return authenticated && ready ? (
@@ -38,7 +38,7 @@ const Menu = () => {
       <Link to={"/home"}>
         <Button {...styleButton}>Home</Button>
       </Link>
-      <Button {...styleButton} onClick={login}>
+      <Button {...styleButton} onClick={get}>
         Sign in
       </Button>
     </>
