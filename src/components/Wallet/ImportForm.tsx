@@ -1,85 +1,228 @@
 import { useContext } from "react";
-import { Button, TextField } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  Typography,
+  Box,
+  InputLabel,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 import UserContext from "../../context/UserContext";
-import { CommonProps } from "@mui/material/OverridableComponent";
 import { TOKEN } from "../../const/const";
 
-const styleText: CommonProps = {
+const styleText = {
   style: {
     color: "#FFFFF5DB",
     outline: "none",
     backgroundColor: "#A8B1FF",
   },
 };
+
 const ImportForm = () => {
   const {
     userData: { ready, authenticated },
     walletData: { wallet, privateKey, walletReady },
-    transactionData: { txSentInfura, selectedToken },
-    userFunction: {},
+    transactionData: {
+      txSentInfura,
+      selectedToken,
+      inputToken,
+      outputToken,
+      amountSwap,
+    },
     walletFunction: { setPrivateKey, connectCurrentWallet, importNewWallet },
-    transactionFunction: { handleSubmit, setSelectedToken },
+    transactionFunction: {
+      handleSubmit,
+      setSelectedToken,
+      handleSwapSubmit,
+      setInputToken,
+      setOutputToken,
+      setAmountSwap,
+    },
   } = useContext(UserContext);
 
   return !wallet?.address ? (
-    <>
+    <Box
+      sx={{
+        p: 3,
+        bgcolor: "#1e1e2f",
+        borderRadius: 2,
+        maxWidth: 500,
+        margin: "auto",
+      }}
+    >
       {walletReady ? (
-        <div>
-          <input
+        <Box>
+          <TextField
+            fullWidth
             type="text"
             value={privateKey}
             onChange={(e) => setPrivateKey(e.target.value)}
             placeholder="Enter your private key"
+            variant="outlined"
+            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
           />
-          <button onClick={importNewWallet} disabled={!authenticated || !ready}>
-            Import new wallet
-          </button>
-
-          <button
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={importNewWallet}
+            disabled={!authenticated || !ready}
+          >
+            Import New Wallet
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            sx={{ mt: 2 }}
             onClick={connectCurrentWallet}
             disabled={!authenticated || !ready}
           >
-            Connect current wallet
-          </button>
-        </div>
+            Connect Current Wallet
+          </Button>
+        </Box>
       ) : (
-        <div>Wallet is not ready</div>
+        <Typography color="error">Wallet is not ready</Typography>
       )}
-    </>
+    </Box>
   ) : (
-    <>
-      <p>
-        {wallet ? wallet.address : ""}
-        {}
-      </p>
-      <h3> Fill the form to send ETH </h3>
-      <div>
-        <form onSubmit={handleSubmit}>
-          <label>Select Asset:</label>
-          <select
-            value={selectedToken}
-            onChange={(e) => setSelectedToken(e.target.value)}
+    <Box
+      sx={{
+        p: 3,
+        bgcolor: "#1e1e2f",
+        borderRadius: 2,
+        maxWidth: 500,
+        margin: "auto",
+      }}
+    >
+      <Typography variant="h6" color="white">
+        Wallet Address: {wallet.address}
+      </Typography>
+      {/* Send Token Form */}
+      <Typography variant="h6" sx={{ mt: 3, color: "white" }}>
+        Send Token
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <InputLabel sx={{ color: "white" }}>Select Asset:</InputLabel>
+        <Select
+          fullWidth
+          value={selectedToken}
+          onChange={(e) => setSelectedToken(e.target.value)}
+          variant="outlined"
+          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+        >
+          {TOKEN.map((token) => (
+            <MenuItem key={token.address} value={token.name}>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <img
+                    src={token.icon}
+                    alt={token.name}
+                    width={24}
+                    height={24}
+                    style={{ borderRadius: "50%" }}
+                  />
+                </ListItemIcon>
+                <ListItemText primary={token.name} />
+              </Box>
+            </MenuItem>
+          ))}
+        </Select>
+        <TextField
+          fullWidth
+          type="text"
+          name="recipient"
+          label="Recipient Address"
+          variant="outlined"
+          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+        />
+        <TextField
+          fullWidth
+          type="text"
+          name="amount"
+          label="Amount"
+          variant="outlined"
+          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+        />
+        <Button fullWidth {...styleText} type="submit" variant="contained">
+          SEND
+        </Button>
+      </form>
+      <Typography color="success.main" sx={{ mt: 2 }}>
+        {txSentInfura}
+      </Typography>
+      {/* Swap Token Form */}
+      <Box sx={{ mt: 4 }}>
+        <Typography variant="h6" sx={{ color: "white" }}>
+          Swap Tokens
+        </Typography>
+        <form onSubmit={handleSwapSubmit}>
+          <InputLabel sx={{ color: "white" }}>From</InputLabel>
+          <Select
+            fullWidth
+            value={inputToken}
+            onChange={(e) => setInputToken(e.target.value)}
+            variant="outlined"
+            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
           >
             {TOKEN.map((token) => (
-              <option key={token.address} value={token.address}>
-                {token.name}
-              </option>
+              <MenuItem key={token.address} value={token.name}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <img
+                      src={token.icon}
+                      alt={token.name}
+                      width={24}
+                      height={24}
+                      style={{ borderRadius: "50%" }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary={token.name} />
+                </Box>
+              </MenuItem>
             ))}
-          </select>
+          </Select>
+          <InputLabel sx={{ color: "white" }}>To</InputLabel>
+          <Select
+            fullWidth
+            value={outputToken}
+            onChange={(e) => setOutputToken(e.target.value)}
+            variant="outlined"
+            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+          >
+            {TOKEN.map((token) => (
+              <MenuItem key={token.address} value={token.name}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <img
+                      src={token.icon}
+                      alt={token.name}
+                      width={24}
+                      height={24}
+                      style={{ borderRadius: "50%" }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary={token.name} />
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
           <TextField
-            type="text"
-            name="recipient"
-            placeholder="Recipient Address"
+            fullWidth
+            type="number"
+            value={amountSwap}
+            onChange={(e) => setAmountSwap(Number(e.target.value))}
+            label="Amount"
+            variant="outlined"
+            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
           />
-          <TextField type="text" name="amount" placeholder="Amount" />
-          <Button {...styleText} type="submit">
-            SEND
+          <Button fullWidth type="submit" variant="contained" sx={{ mt: 1 }}>
+            Swap Tokens{" "}
           </Button>
-        </form>
-        <p>{txSentInfura}</p>
-      </div>
-    </>
+        </form>{" "}
+      </Box>{" "}
+    </Box>
   );
 };
-
 export default ImportForm;

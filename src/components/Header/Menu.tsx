@@ -26,6 +26,9 @@ const Menu = () => {
       <Link to={"/wallet"}>
         <Button {...styleButton}>Wallet</Button>
       </Link>
+      <Link to={"/history"}>
+        <Button {...styleButton}>History</Button>
+      </Link>
       <Button {...styleButton}>
         {user?.wallet?.address.substring(0, 10)}...
       </Button>

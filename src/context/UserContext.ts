@@ -12,7 +12,13 @@ export type UserContextType = {
     privateKey: string;
     walletReady: boolean;
   };
-  transactionData: { txSentInfura: string; selectedToken: string };
+  transactionData: {
+    txSentInfura: string;
+    selectedToken: string;
+    inputToken: string;
+    outputToken: string;
+    amountSwap: number;
+  };
   userFunction: {
     get: (e: React.FormEvent) => void;
     walletLogout: () => Promise<void>;
@@ -31,7 +37,11 @@ export type UserContextType = {
   };
   transactionFunction: {
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    handleSwapSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     setSelectedToken: React.Dispatch<React.SetStateAction<string>>;
+    setInputToken: React.Dispatch<React.SetStateAction<string>>;
+    setOutputToken: React.Dispatch<React.SetStateAction<string>>;
+    setAmountSwap: React.Dispatch<React.SetStateAction<number>>;
   };
 };
 

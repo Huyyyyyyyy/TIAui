@@ -12,8 +12,12 @@ import {
   ERC20_ABI,
   INFURA_API_KEY,
   NETWORK,
+  ROUTER02,
+  ROUTER02_ABI,
   TOKEN,
 } from "../const/const";
+import { TransactionPayload } from "../types/user";
+import { sendSwapPayload, sendTransferPayload } from "../apis/user";
 
 export function useUser() {
   //user
@@ -32,7 +36,10 @@ export function useUser() {
 
   //transaction data
   const [txSentInfura] = useState<string>("");
-  const [selectedToken, setSelectedToken] = useState(TOKEN[0].address);
+  const [selectedToken, setSelectedToken] = useState(TOKEN[0].name);
+  const [inputToken, setInputToken] = useState(TOKEN[0].name);
+  const [outputToken, setOutputToken] = useState(TOKEN[1].name);
+  const [amountSwap, setAmountSwap] = useState(0);
 
   //navigate
   const navigate = useNavigate();
@@ -49,7 +56,7 @@ export function useUser() {
       // Reset all states
       setWallet(undefined!); // Remove wallet
       setPrivateKey(""); // Clear private key
-      setSelectedToken(TOKEN[0].address); // Reset token selection
+      setSelectedToken(TOKEN[0].name); // Reset token selection
       // Navigate back to login page
       wallets.map((w) => {
         w.unlink();
@@ -120,6 +127,11 @@ export function useUser() {
   };
 
   //transaction function
+
+  const getTokenByName = (name: string) => {
+    return TOKEN.find((token) => token.name === name);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
@@ -137,13 +149,12 @@ export function useUser() {
         await wallet.getEthereumProvider()
       );
       const signer = await provider.getSigner();
-
-      if (selectedToken === "ETH") {
-        console.log("Go to send eth");
+      const token = getTokenByName(selectedToken);
+      console.log(selectedToken);
+      if (token?.name === "ETH") {
         await sendETHTransaction(recipient, amount, signer);
       } else {
-        console.log(selectedToken);
-        await sendERC20Transaction(selectedToken, recipient, amount, signer);
+        if (token) await sendERC20Transaction(token, recipient, amount, signer);
       }
     } catch (error) {
       console.error("Transaction Failed:", error);
@@ -151,20 +162,30 @@ export function useUser() {
   };
 
   const sendERC20Transaction = async (
-    tokenAddress: string,
+    token: { name: string; address: string },
     recipient: string,
     amount: string,
     signer: ethers.Signer
   ) => {
-    console.log("address :", tokenAddress);
-    const contract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-    console.log("contract: ", contract);
-    console.log("rec: ", recipient);
+    console.log("address :", selectedToken);
+    const contract = new ethers.Contract(token.address, ERC20_ABI, signer);
 
     const tx = await contract.transfer(recipient, ethers.parseUnits(amount, 6));
-    console.log("ERC-20 Transaction Sent! Hash:", tx.hash);
     await tx.wait();
-    console.log("ERC-20 Transaction Confirmed!");
+    console.log("ERC-20 Transaction Sent! Hash:", tx.hash);
+    const payload: TransactionPayload = {
+      tx_type: "CryptoTransfer",
+      data: {
+        transaction_hash: tx.hash,
+        sender_address: await signer.getAddress(),
+        recipient_address: recipient,
+        amount: amount,
+        chain: token.name,
+        timestamp: Date.now().toString(),
+      },
+    };
+
+    await sendTransferPayload(payload);
   };
 
   const sendETHTransaction = async (
@@ -179,7 +200,6 @@ export function useUser() {
       // Fetch sender's balance
       const senderAddress = await signer.getAddress();
       const balance = await provider.getBalance(senderAddress);
-      console.log("Sender balance:", ethers.formatEther(balance), "ETH");
 
       // Convert amount to BigInt for calculations
       const value = ethers.parseUnits(amount, 18);
@@ -198,15 +218,8 @@ export function useUser() {
 
       // Estimate gas limit
       const estimatedGas = await provider.estimateGas(txParams);
-      console.log("Estimated Gas:", estimatedGas.toString());
-
       // Calculate total cost: value + (gasLimit * maxFeePerGas)
       const totalCost = value + estimatedGas * maxFeePerGas;
-      console.log(
-        "Total Transaction Cost:",
-        ethers.formatEther(totalCost),
-        "ETH"
-      );
 
       // Ensure balance is sufficient
       if (balance < totalCost) {
@@ -223,14 +236,131 @@ export function useUser() {
         gasLimit: estimatedGas,
       });
 
-      console.log("ETH Transaction Sent! Hash:", tx.hash);
       await tx.wait();
-      console.log("ETH Transaction Confirmed!");
+      console.log("ETH Transaction Sent! Hash:", tx.hash);
 
+      const payload: TransactionPayload = {
+        tx_type: "CryptoTransfer",
+        data: {
+          transaction_hash: tx.hash,
+          sender_address: senderAddress,
+          recipient_address: recipient,
+          amount: amount,
+          chain: selectedToken,
+          timestamp: Date.now().toString(),
+        },
+      };
+
+      await sendTransferPayload(payload);
       return tx.hash;
     } catch (error) {
       console.error("Transaction Failed:", error);
     }
+  };
+
+  const swapToken = async (
+    inputToken: string,
+    outputToken: string,
+    amountIn: string,
+    signer: ethers.Signer
+  ) => {
+    const router = new ethers.Contract(ROUTER02, ROUTER02_ABI, signer);
+    const spenderAddress = await signer.getAddress();
+    //map token
+    const from = inputToken == "ETH" ? "WETH" : inputToken;
+    const inputTokenObj = getTokenByName(from);
+    if (!inputTokenObj) return;
+    const inputContract = new ethers.Contract(
+      inputTokenObj?.address,
+      ERC20_ABI,
+      signer
+    );
+
+    const to = outputToken == "ETH" ? "WETH" : outputToken;
+    const outputTokenObj = getTokenByName(to);
+    if (!outputTokenObj) return;
+
+    const decimals = await inputContract.decimals();
+    const approvalAmount = ethers.parseUnits(amountIn, decimals);
+
+    console.log(from, to);
+    let amountsOut = await router.getAmountsOut(approvalAmount, [
+      inputTokenObj.address,
+      outputTokenObj.address,
+    ]);
+    console.log(amountsOut);
+
+    const amountOutMin = (amountsOut[1] * 95n) / 100n;
+
+    const approveTx = await inputContract.approve(ROUTER02, approvalAmount);
+    await approveTx.wait();
+
+    let tx;
+    // Define a deadline (e.g., current time + 20 minutes)
+    const deadline = Math.floor(Date.now() / 1000) + 20 * 60;
+    if (inputToken === "ETH") {
+      // Swap ETH for tokens
+      console.log("go in ETH");
+      tx = await router.swapExactETHForTokens(
+        amountOutMin,
+        [inputTokenObj.address, outputTokenObj.address],
+        spenderAddress,
+        deadline,
+        { value: approvalAmount }
+      );
+    } else if (outputToken === "ETH") {
+      // Swap tokens for ETH
+      console.log("go out ETH");
+      tx = await router.swapExactTokensForETH(
+        approvalAmount,
+        amountOutMin,
+        [inputTokenObj.address, outputTokenObj.address],
+        spenderAddress,
+        deadline
+      );
+    } else {
+      // Token for token swap
+      console.log("go in/out token");
+      tx = await router.swapExactTokensForTokens(
+        approvalAmount,
+        amountOutMin,
+        [inputTokenObj.address, outputTokenObj.address],
+        spenderAddress,
+        deadline
+      );
+    }
+
+    await tx.wait();
+    console.log("Swap Transaction Sent! Hash:", tx.hash);
+
+    const payload: TransactionPayload = {
+      tx_type: "Swap",
+      data: {
+        transaction_hash: tx.hash,
+        address: spenderAddress,
+        amount_in: amountIn,
+        from_token: inputToken,
+        to_token: outputToken,
+        timestamp: Date.now().toString(),
+      },
+    };
+
+    await sendSwapPayload(payload);
+    return tx.hash;
+  };
+
+  const handleSwapSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (inputToken === outputToken) {
+      alert("Input and output tokens must be different.");
+      return;
+    }
+    const provider = new ethers.BrowserProvider(
+      await wallet.getEthereumProvider()
+    );
+    const signer = await provider.getSigner();
+    swapToken(inputToken, outputToken, amountSwap.toString(), signer);
   };
 
   return {
@@ -248,6 +378,9 @@ export function useUser() {
     transactionData: {
       txSentInfura,
       selectedToken,
+      inputToken,
+      outputToken,
+      amountSwap,
     },
     userFunction: {
       walletLogout,
@@ -261,7 +394,11 @@ export function useUser() {
     },
     transactionFunction: {
       handleSubmit,
+      handleSwapSubmit,
       setSelectedToken,
+      setOutputToken,
+      setInputToken,
+      setAmountSwap,
     },
   };
 }
