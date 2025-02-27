@@ -33,6 +33,7 @@ export function useUser() {
   const [infuraProvider] = useState<InfuraProvider>(
     new ethers.InfuraProvider(NETWORK, INFURA_API_KEY)
   );
+  const [balance, setBalance] = useState("0");
 
   //transaction data
   const [txSentInfura] = useState<string>("");
@@ -76,7 +77,6 @@ export function useUser() {
       const timer = setTimeout(() => {
         connectCurrentWallet().then(() => {});
       }, 1000);
-
       return () => clearTimeout(timer);
     }
   }, [authenticated, ready, walletReady]);
@@ -124,6 +124,15 @@ export function useUser() {
     } catch (error) {
       console.error("Failed to import wallet:", error);
     }
+  };
+
+  const getBalance = async () => {
+    const provider = new ethers.BrowserProvider(
+      await wallet.getEthereumProvider()
+    );
+    const signer = await provider.getSigner();
+    const balance = await provider.getBalance(await signer.getAddress());
+    setBalance(ethers.formatEther(balance).toString());
   };
 
   //transaction function
@@ -199,15 +208,9 @@ export function useUser() {
 
       // Fetch sender's balance
       const senderAddress = await signer.getAddress();
-      const balance = await provider.getBalance(senderAddress);
 
       // Convert amount to BigInt for calculations
       const value = ethers.parseUnits(amount, 18);
-
-      // Fetch gas price dynamically
-      const feeData = await provider.getFeeData();
-      const maxFeePerGas =
-        feeData.maxFeePerGas || ethers.parseUnits("3", "gwei");
 
       // Create transaction request
       const txParams: TransactionRequest = {
@@ -218,17 +221,6 @@ export function useUser() {
 
       // Estimate gas limit
       const estimatedGas = await provider.estimateGas(txParams);
-      // Calculate total cost: value + (gasLimit * maxFeePerGas)
-      const totalCost = value + estimatedGas * maxFeePerGas;
-
-      // Ensure balance is sufficient
-      if (balance < totalCost) {
-        throw new Error(
-          `Insufficient funds! Available: ${ethers.formatEther(
-            balance
-          )} ETH, Needed: ${ethers.formatEther(totalCost)} ETH`
-        );
-      }
 
       // Send transaction
       const tx = await signer.sendTransaction({
@@ -374,6 +366,7 @@ export function useUser() {
       infuraProvider,
       privateKey,
       walletReady,
+      balance,
     },
     transactionData: {
       txSentInfura,
@@ -391,6 +384,7 @@ export function useUser() {
       setPrivateKey,
       connectCurrentWallet,
       importNewWallet,
+      getBalance,
     },
     transactionFunction: {
       handleSubmit,

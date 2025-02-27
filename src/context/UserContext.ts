@@ -11,6 +11,7 @@ export type UserContextType = {
     wallet: ConnectedWallet | undefined;
     privateKey: string;
     walletReady: boolean;
+    balance: string;
   };
   transactionData: {
     txSentInfura: string;
@@ -34,6 +35,7 @@ export type UserContextType = {
     setPrivateKey: React.Dispatch<React.SetStateAction<string>>;
     connectCurrentWallet: () => Promise<void>;
     importNewWallet: () => Promise<void>;
+    getBalance: () => Promise<void>;
   };
   transactionFunction: {
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;

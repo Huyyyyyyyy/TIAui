@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import {
   Button,
   TextField,
@@ -24,15 +24,14 @@ const styleText = {
 const ImportForm = () => {
   const {
     userData: { ready, authenticated },
-    walletData: { wallet, privateKey, walletReady },
-    transactionData: {
-      txSentInfura,
-      selectedToken,
-      inputToken,
-      outputToken,
-      amountSwap,
+    walletData: { wallet, privateKey, walletReady, balance },
+    transactionData: { selectedToken, inputToken, outputToken, amountSwap },
+    walletFunction: {
+      setPrivateKey,
+      connectCurrentWallet,
+      importNewWallet,
+      getBalance,
     },
-    walletFunction: { setPrivateKey, connectCurrentWallet, importNewWallet },
     transactionFunction: {
       handleSubmit,
       setSelectedToken,
@@ -42,6 +41,12 @@ const ImportForm = () => {
       setAmountSwap,
     },
   } = useContext(UserContext);
+
+  useEffect(() => {
+    if (authenticated && ready && walletReady) {
+      getBalance();
+    }
+  }, [wallet, ready, walletReady]);
 
   return !wallet?.address ? (
     <Box
@@ -97,20 +102,22 @@ const ImportForm = () => {
       }}
     >
       <Typography variant="h6" color="white">
-        Wallet Address: {wallet.address}
+        {wallet.address}
+      </Typography>
+      <Typography variant="h6" color="white">
+        Balance : {balance} ETH
       </Typography>
       {/* Send Token Form */}
       <Typography variant="h6" sx={{ mt: 3, color: "white" }}>
-        Send Token
+        Send
       </Typography>
       <form onSubmit={handleSubmit}>
-        <InputLabel sx={{ color: "white" }}>Select Asset:</InputLabel>
         <Select
           fullWidth
           value={selectedToken}
           onChange={(e) => setSelectedToken(e.target.value)}
           variant="outlined"
-          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+          sx={{ mb: 2, bgcolor: "#ececec" }}
         >
           {TOKEN.map((token) => (
             <MenuItem key={token.address} value={token.name}>
@@ -135,7 +142,7 @@ const ImportForm = () => {
           name="recipient"
           label="Recipient Address"
           variant="outlined"
-          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+          sx={{ mb: 2, bgcolor: "#ececec" }}
         />
         <TextField
           fullWidth
@@ -143,19 +150,17 @@ const ImportForm = () => {
           name="amount"
           label="Amount"
           variant="outlined"
-          sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+          sx={{ mb: 2, bgcolor: "#ececec" }}
         />
         <Button fullWidth {...styleText} type="submit" variant="contained">
           SEND
         </Button>
       </form>
-      <Typography color="success.main" sx={{ mt: 2 }}>
-        {txSentInfura}
-      </Typography>
+
       {/* Swap Token Form */}
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6" sx={{ color: "white" }}>
-          Swap Tokens
+          Swap
         </Typography>
         <form onSubmit={handleSwapSubmit}>
           <InputLabel sx={{ color: "white" }}>From</InputLabel>
@@ -164,7 +169,7 @@ const ImportForm = () => {
             value={inputToken}
             onChange={(e) => setInputToken(e.target.value)}
             variant="outlined"
-            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+            sx={{ mb: 2, bgcolor: "#ececec" }}
           >
             {TOKEN.map((token) => (
               <MenuItem key={token.address} value={token.name}>
@@ -189,7 +194,7 @@ const ImportForm = () => {
             value={outputToken}
             onChange={(e) => setOutputToken(e.target.value)}
             variant="outlined"
-            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+            sx={{ mb: 2, bgcolor: "#ececec" }}
           >
             {TOKEN.map((token) => (
               <MenuItem key={token.address} value={token.name}>
@@ -215,13 +220,19 @@ const ImportForm = () => {
             onChange={(e) => setAmountSwap(Number(e.target.value))}
             label="Amount"
             variant="outlined"
-            sx={{ mb: 2, bgcolor: "#A8B1FF" }}
+            sx={{ mb: 2, bgcolor: "#ececec" }}
           />
-          <Button fullWidth type="submit" variant="contained" sx={{ mt: 1 }}>
-            Swap Tokens{" "}
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            sx={{ mt: 1 }}
+            {...styleText}
+          >
+            SWAP
           </Button>
-        </form>{" "}
-      </Box>{" "}
+        </form>
+      </Box>
     </Box>
   );
 };
