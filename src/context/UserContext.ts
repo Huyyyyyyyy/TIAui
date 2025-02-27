@@ -1,21 +1,33 @@
 import { createContext } from "react";
-import { TUserImport, TUserStatus } from "../types/user";
-import { ConnectedWallet, LoginModalOptions, User } from "@privy-io/react-auth";
+import { ConnectedWallet, User } from "@privy-io/react-auth";
 
 export type UserContextType = {
-  data: {
+  userData: {
     user: User | null;
-    status: TUserStatus;
-    userImport: TUserImport;
     authenticated: boolean;
     ready: boolean;
-    wallet: ConnectedWallet | undefined;
   };
-  functions: {
+  walletData: {
+    wallet: ConnectedWallet | undefined;
+    wallets: ConnectedWallet[];
+    privateKey: string;
+    walletReady: boolean;
+    balance: string;
+    faucetStatus: string;
+    statusCreateWallet: string;
+  };
+  transactionData: {
+    txSentInfura: string;
+    selectedToken: string;
+    inputToken: string;
+    outputToken: string;
+    amountSwap: string;
+  };
+  userFunction: {
     get: (e: React.FormEvent) => void;
-    handleImportWallet: (
-      e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => void;
+    walletLogout: () => Promise<void>;
+  };
+  walletFunction: {
     exportWallet: (
       options?:
         | {
@@ -23,9 +35,23 @@ export type UserContextType = {
           }
         | React.MouseEvent<any, any>
     ) => Promise<void>;
-    getWallet: (address: string) => void;
-    login: (e: LoginModalOptions | React.MouseEvent<any, any>) => void;
-    logout: () => Promise<void>;
+    setPrivateKey: React.Dispatch<React.SetStateAction<string>>;
+    connectCurrentWallet: () => Promise<void>;
+    importNewWallet: () => Promise<void>;
+    getBalance: () => Promise<void>;
+    getERC20Balance: (name: string) => Promise<string>;
+    faucetUSDC: () => Promise<void>;
+    fundUserWallet: (address: string) => Promise<void>;
+    setWallet: React.Dispatch<React.SetStateAction<ConnectedWallet>>;
+    createAdditionalWallet: () => Promise<void>;
+  };
+  transactionFunction: {
+    handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    handleSwapSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    setSelectedToken: React.Dispatch<React.SetStateAction<string>>;
+    setInputToken: React.Dispatch<React.SetStateAction<string>>;
+    setOutputToken: React.Dispatch<React.SetStateAction<string>>;
+    setAmountSwap: React.Dispatch<React.SetStateAction<string>>;
   };
 };
 

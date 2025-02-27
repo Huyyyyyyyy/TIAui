@@ -1,13 +1,31 @@
 import axios, { AxiosError } from "axios";
-import { TUserLogin, TUserRegister } from "../types/user";
+import {
+  FaucetUsdcPayload,
+  HistoryPayload,
+  TransactionPayload,
+} from "../types/user";
 import { BASE_URL } from "../const/const";
 
-export const createUser = async (createUserInput: TUserRegister) => {
+export const sendTransferPayload = async (payload: TransactionPayload) => {
+  let res;
+  try {
+    const response = await axios.post(`${BASE_URL}/crypto/process`, payload);
+    if (response.data.status === 200) {
+      res = response;
+    }
+  } catch (error: AxiosError | any) {
+    const errorRes = JSON.parse(error.request.response);
+    res = errorRes;
+  }
+  return res;
+};
+
+export const sendSwapPayload = async (payload: TransactionPayload) => {
   let res;
   try {
     const response = await axios.post(
-      `${BASE_URL}/user/register`,
-      createUserInput
+      `${BASE_URL}/crypto/swapProcess`,
+      payload
     );
     if (response.data.status === 200) {
       res = response;
@@ -19,32 +37,33 @@ export const createUser = async (createUserInput: TUserRegister) => {
   return res;
 };
 
-export const login = async (userLoginInput: TUserLogin) => {
-  let jsonRes;
-  let loginStatus;
+export const getHistory = async (payload: HistoryPayload) => {
+  let res;
   try {
-    let response;
-    response = await axios.post(`${BASE_URL}/auth/sign-in`, userLoginInput);
-    jsonRes = JSON.parse(response.request.response);
-    loginStatus = jsonRes;
+    const response = await axios.post(
+      `${BASE_URL}/history/transaction`,
+      payload
+    );
+    if (response.data.status === 200) {
+      res = response;
+    }
   } catch (error: AxiosError | any) {
     const errorRes = JSON.parse(error.request.response);
-    loginStatus = {
-      status: errorRes.statusCode,
-      message: errorRes.message,
-      data: {
-        accessToken: "",
-      },
-    };
+    res = errorRes;
   }
-  return loginStatus;
+  return res;
 };
 
-export const getUser = async (accessToken: string) => {
-  const response = await axios.get(`${BASE_URL}/user/me`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  return response.data.data;
+export const getUsdcFaucet = async (payload: FaucetUsdcPayload) => {
+  let res;
+  try {
+    const response = await axios.post(`${BASE_URL}/fiat/transaction`, payload);
+    if (response.data.status === 200) {
+      res = response;
+    }
+  } catch (error: AxiosError | any) {
+    const errorRes = JSON.parse(error.request.response);
+    res = errorRes;
+  }
+  return res;
 };
