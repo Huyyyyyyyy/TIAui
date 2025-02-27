@@ -9,16 +9,19 @@ export type UserContextType = {
   };
   walletData: {
     wallet: ConnectedWallet | undefined;
+    wallets: ConnectedWallet[];
     privateKey: string;
     walletReady: boolean;
     balance: string;
+    faucetStatus: string;
+    statusCreateWallet: string;
   };
   transactionData: {
     txSentInfura: string;
     selectedToken: string;
     inputToken: string;
     outputToken: string;
-    amountSwap: number;
+    amountSwap: string;
   };
   userFunction: {
     get: (e: React.FormEvent) => void;
@@ -36,6 +39,11 @@ export type UserContextType = {
     connectCurrentWallet: () => Promise<void>;
     importNewWallet: () => Promise<void>;
     getBalance: () => Promise<void>;
+    getERC20Balance: (name: string) => Promise<string>;
+    faucetUSDC: () => Promise<void>;
+    fundUserWallet: (address: string) => Promise<void>;
+    setWallet: React.Dispatch<React.SetStateAction<ConnectedWallet>>;
+    createAdditionalWallet: () => Promise<void>;
   };
   transactionFunction: {
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -43,7 +51,7 @@ export type UserContextType = {
     setSelectedToken: React.Dispatch<React.SetStateAction<string>>;
     setInputToken: React.Dispatch<React.SetStateAction<string>>;
     setOutputToken: React.Dispatch<React.SetStateAction<string>>;
-    setAmountSwap: React.Dispatch<React.SetStateAction<number>>;
+    setAmountSwap: React.Dispatch<React.SetStateAction<string>>;
   };
 };
 

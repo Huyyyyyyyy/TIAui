@@ -32,3 +32,7 @@ export const TOKEN = [
 export const ROUTER02 = "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3";
 import router02Contract from "../const/router02.json";
 export const ROUTER02_ABI = router02Contract;
+
+
+//function 
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

@@ -16,6 +16,12 @@ createRoot(document.getElementById("root")!).render(
           loginMethods: ["email"],
           embeddedWallets: { ethereum: { createOnLogin: "off" } },
           defaultChain: sepolia,
+          fundingMethodConfig: {
+            moonpay: {
+              paymentMethod: "credit_debit_card",
+              uiConfig: { accentColor: "#696FFD", theme: "dark" },
+            },
+          },
         }}
       >
         <AppRouter />

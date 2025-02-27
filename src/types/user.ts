@@ -31,3 +31,13 @@ export type TransactionPayload =
 export type TransactionRecord =
   | { tx_type: "CryptoTransfer"; data: TCryptoTransferData }
   | { tx_type: "Swap"; data: TSwapData };
+
+export type TokenBalance = {
+  [key: string]: string;
+};
+
+export type FaucetUsdcPayload = {
+  amount: string;
+  chain: "ETH";
+  destination_address: string;
+};

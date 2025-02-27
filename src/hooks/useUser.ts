@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   ConnectedWallet,
+  useCreateWallet,
+  useFundWallet,
   useImportWallet,
   usePrivy,
   useWallets,
@@ -14,10 +16,16 @@ import {
   NETWORK,
   ROUTER02,
   ROUTER02_ABI,
+  sleep,
   TOKEN,
 } from "../const/const";
-import { TransactionPayload } from "../types/user";
-import { sendSwapPayload, sendTransferPayload } from "../apis/user";
+import { FaucetUsdcPayload, TransactionPayload } from "../types/user";
+import {
+  getUsdcFaucet,
+  sendSwapPayload,
+  sendTransferPayload,
+} from "../apis/user";
+import { sepolia } from "viem/chains";
 
 export function useUser() {
   //user
@@ -34,13 +42,17 @@ export function useUser() {
     new ethers.InfuraProvider(NETWORK, INFURA_API_KEY)
   );
   const [balance, setBalance] = useState("0");
+  const [faucetStatus, setFaucetStatus] = useState("success");
+  const { fundWallet } = useFundWallet();
+  const { createWallet } = useCreateWallet();
+  const [statusCreateWallet, setStatusCreateWallet] = useState("success");
 
   //transaction data
   const [txSentInfura] = useState<string>("");
   const [selectedToken, setSelectedToken] = useState(TOKEN[0].name);
   const [inputToken, setInputToken] = useState(TOKEN[0].name);
   const [outputToken, setOutputToken] = useState(TOKEN[1].name);
-  const [amountSwap, setAmountSwap] = useState(0);
+  const [amountSwap, setAmountSwap] = useState("");
 
   //navigate
   const navigate = useNavigate();
@@ -135,6 +147,55 @@ export function useUser() {
     setBalance(ethers.formatEther(balance).toString());
   };
 
+  const getERC20Balance = async (name: string): Promise<string> => {
+    const provider = new ethers.BrowserProvider(
+      await wallet.getEthereumProvider()
+    );
+    const obj: { name: string; address: string } | undefined =
+      getTokenByName(name);
+    if (!obj) return "";
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(obj.address, ERC20_ABI, signer);
+    let balance = await contract.balanceOf(await signer.getAddress());
+    const decimals = await contract.decimals();
+    balance = ethers.formatUnits(balance, decimals);
+    return (+balance).toFixed(2);
+  };
+
+  const faucetUSDC = async () => {
+    try {
+      setFaucetStatus("loading");
+      setFaucetStatus("loading");
+      if (!wallet.address) return;
+      const payload: FaucetUsdcPayload = {
+        amount: "5.00",
+        chain: "ETH",
+        destination_address: wallet.address,
+      };
+      await getUsdcFaucet(payload);
+      await sleep(2000);
+      setFaucetStatus("success");
+    } catch (e) {
+      console.log(e);
+      setFaucetStatus("success");
+    }
+  };
+
+  const fundUserWallet = async (address: string) => {
+    await fundWallet(address, { chain: sepolia, asset: "USDC" });
+  };
+
+  const createAdditionalWallet = async () => {
+    try {
+      setStatusCreateWallet("loading");
+      await createWallet({ createAdditional: true });
+      setStatusCreateWallet("success");
+    } catch (e) {
+      console.log(e);
+      setStatusCreateWallet("success");
+      return;
+    }
+  };
   //transaction function
 
   const getTokenByName = (name: string) => {
@@ -176,12 +237,14 @@ export function useUser() {
     amount: string,
     signer: ethers.Signer
   ) => {
-    console.log("address :", selectedToken);
     const contract = new ethers.Contract(token.address, ERC20_ABI, signer);
+    const decimals = await contract.decimals();
 
-    const tx = await contract.transfer(recipient, ethers.parseUnits(amount, 6));
+    const tx = await contract.transfer(
+      recipient,
+      ethers.parseUnits(amount, decimals)
+    );
     await tx.wait();
-    console.log("ERC-20 Transaction Sent! Hash:", tx.hash);
     const payload: TransactionPayload = {
       tx_type: "CryptoTransfer",
       data: {
@@ -363,10 +426,13 @@ export function useUser() {
     },
     walletData: {
       wallet,
+      wallets,
       infuraProvider,
       privateKey,
       walletReady,
       balance,
+      faucetStatus,
+      statusCreateWallet,
     },
     transactionData: {
       txSentInfura,
@@ -385,6 +451,11 @@ export function useUser() {
       connectCurrentWallet,
       importNewWallet,
       getBalance,
+      getERC20Balance,
+      faucetUSDC,
+      fundUserWallet,
+      setWallet,
+      createAdditionalWallet,
     },
     transactionFunction: {
       handleSubmit,

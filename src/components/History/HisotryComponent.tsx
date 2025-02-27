@@ -7,11 +7,9 @@ import { HistoryPayload } from "../../types/user";
 const HistoryComponent = () => {
   const {
     userData: { user },
-    walletData: {},
-    transactionData: {},
-    walletFunction: {},
-    transactionFunction: {},
+    walletData: { wallet },
   } = useContext(UserContext);
+
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,9 +17,9 @@ const HistoryComponent = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        if (!user?.wallet?.address) return;
+        if (!wallet) return;
         const payload: HistoryPayload = {
-          address: user?.wallet?.address,
+          address: wallet.address,
         };
         const response = await getHistory(payload);
         if (response.data.status === 200) {
@@ -30,6 +28,7 @@ const HistoryComponent = () => {
           setError("Failed to fetch history");
         }
       } catch (err) {
+        console.error(err);
         setError("Error fetching history");
       } finally {
         setLoading(false);
@@ -37,18 +36,19 @@ const HistoryComponent = () => {
     };
 
     fetchHistory();
-  }, []);
+  }, [user, wallet]);
 
-  if (loading) return <Typography>Loading history...</Typography>;
+  if (loading)
+    return <Typography color="#ececec">Loading history...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Transaction History
+    <Box sx={{ maxWidth: 800, margin: "auto", p: 2 }}>
+      <Typography variant="h5" gutterBottom color="#ececec">
+        History
       </Typography>
       {history.map((item, index) => (
-        <Card key={index} sx={{ marginBottom: 2 }}>
+        <Card key={index} sx={{ mb: 2, bgcolor: "#f5f5f5" }}>
           <CardContent>
             <Typography variant="body1" fontWeight="bold">
               {item.tx_type}
@@ -56,39 +56,41 @@ const HistoryComponent = () => {
             {item.tx_type === "CryptoTransfer" ? (
               <>
                 <Typography variant="body2">
-                  From: {item.data.sender_address}
+                  <strong>From:</strong> {item.data.sender_address}
                 </Typography>
                 <Typography variant="body2">
-                  To: {item.data.recipient_address}
+                  <strong>To:</strong> {item.data.recipient_address}
                 </Typography>
                 <Typography variant="body2">
-                  Amount: {item.data.amount}
+                  <strong>Amount:</strong> {item.data.amount}
                 </Typography>
                 <Typography variant="body2">
-                  Chain: {item.data.chain}
+                  <strong>Chain:</strong> {item.data.chain}
                 </Typography>
                 <Typography variant="body2">
-                  Transaction Hash: {item.data.transaction_hash}
+                  <strong>Transaction Hash:</strong>{" "}
+                  {item.data.transaction_hash}
                 </Typography>
                 <Typography variant="body2">
-                  Timestamp:{" "}
+                  <strong>Timestamp:</strong>{" "}
                   {new Date(parseInt(item.data.timestamp)).toLocaleString()}
                 </Typography>
               </>
             ) : (
               <>
                 <Typography variant="body2">
-                  Address: {item.data.address}
+                  <strong>Address:</strong> {item.data.address}
                 </Typography>
                 <Typography variant="body2">
-                  Swapped: {item.data.amount_in} {item.data.from_token} →{" "}
-                  {item.data.to_token}
+                  <strong>Swapped:</strong> {item.data.amount_in}{" "}
+                  {item.data.from_token} → {item.data.to_token}
                 </Typography>
                 <Typography variant="body2">
-                  Transaction Hash: {item.data.transaction_hash}
+                  <strong>Transaction Hash:</strong>{" "}
+                  {item.data.transaction_hash}
                 </Typography>
                 <Typography variant="body2">
-                  Timestamp:{" "}
+                  <strong>Timestamp:</strong>{" "}
                   {new Date(parseInt(item.data.timestamp)).toLocaleString()}
                 </Typography>
               </>
