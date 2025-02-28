@@ -139,3 +139,43 @@ src
 └───types
         user.ts                      //Here is all the type of user, wallet and payload (for API calling) defined
 ```
+
+### Key Features
+
+- **Privy Wallet Integration:**  
+  Users can sign in with Privy, import wallets using a private key, and manage wallet connections.
+  
+- **Transaction Processing:**  
+  When a transaction is complete on the frontend, the details are packaged and sent to the Rust API. The API processes the transaction by:
+  - Submitting it to a light node.
+  - Storing transaction details in a database.
+  
+- **History Retrieval:**  
+  The frontend history page calls the Rust API to fetch the transaction history. The API uses the wallet’s address to query the database, retrieves the corresponding block height and namespace, and then queries the light node for transaction details.
+
+- **Responsive UI:**  
+  Built with Material-UI, the application offers a modern and responsive user interface.
+
+---
+
+## Special Instructions and Requirements
+
+- **Network Configuration:**  
+  Ensure that your Infura API key, Privy configuration, and blockchain network (e.g., Sepolia) are correctly set up. The environment variables in the frontend should match your backend configurations.
+
+- **Privy Integration:**  
+  Follow the [Privy documentation](https://docs.privy.io/) to correctly set up your PrivyProvider and related hooks. The application relies on Privy for user authentication, wallet import, and signing transactions.
+
+- **Rust API Setup:**  
+  The Rust API must be configured to connect to a light node for your chosen network and to your database for transaction history. Adjust the code in `main.rs` and related modules accordingly.
+
+- **Database:**  
+  Ensure that your database is running and that the Rust API has correct connection details. The database stores transaction history, and the history page fetches this data via the API.
+
+- **Partner Technologies:**  
+  - **Privy Wallet:** Used for non-custodial wallet management and authentication.
+  - **Rust API:** Processes transactions and retrieves history by interfacing with a light node and a database.
+  - **Material-UI:** Provides a modern and responsive UI for the frontend.
+  - **Vite + React + TypeScript:** Enables fast development with HMR and type safety.
+  
+---
