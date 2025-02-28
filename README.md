@@ -237,16 +237,14 @@ src
   The application relies on Privy for user authentication, wallet import, and signing transactions.
 
 - **Rust API Setup:**  
-  Make sure you successfully run the Rust API (currently our Rust API just enable on AWS Lambda function with the static function url)
-  We will keep the function active for you guys to do the review of demo sites for a month then we will disable this function at 28/3/2024
+  Make sure you successfully run the Rust API (currently our Rust API just enable on AWS Lambda function with the static function url).
+  We will keep the function active for you guys to do the review of demo sites for a month then we will disable this function at 28/3/2024.
 
-- **Database:**  
-  Ensure that your database is running and that the Rust API has correct connection details. The database stores transaction history, and the history page fetches this data via the API.
+- **Database: PostgreSQL**  
+  Ensure that your database is running and that the Rust API has correct connection details.
+  The database stores transaction history, and the history page fetches this data via the API.
 
 - **Partner Technologies:**  
   - **Privy Wallet:** Used for non-custodial wallet management and authentication.
-  - **Rust API:** Processes transactions and retrieves history by interfacing with a light node and a database.
-  - **Material-UI:** Provides a modern and responsive UI for the frontend.
-  - **Vite + React + TypeScript:** Enables fast development with HMR and type safety.
   
 ---
