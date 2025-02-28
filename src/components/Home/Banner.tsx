@@ -5,7 +5,7 @@ const Banner = () => {
     style: {
       width: "100%",
       height: "150px",
-      minHeight: "800px",
+      minHeight: "100vh",
       backgroundColor: "#1B1B1F",
       textAlign: "center",
       color: "#FFFFF5DB",

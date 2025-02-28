@@ -3,9 +3,18 @@ import Banner from "../components/Home/Banner";
 
 const HomePage = () => {
   return (
-    <Box>
-      <Banner></Banner>
-    </Box>
+    <div
+      className="home"
+      style={{
+        minHeight: "100vh",
+        paddingTop: "100px",
+        backgroundColor: "#1B1B1F",
+      }}
+    >
+      <Box>
+        <Banner></Banner>
+      </Box>
+    </div>
   );
 };
 

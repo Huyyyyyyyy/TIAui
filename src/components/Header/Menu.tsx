@@ -3,9 +3,13 @@ import {
   Menu as MuiMenu,
   MenuItem,
   ListItemText,
+  Box,
+  IconButton,
 } from "@mui/material";
 import { CommonProps } from "@mui/material/OverridableComponent";
 import { useContext, useState } from "react";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Link } from "react-router-dom";
 import UserContext from "../../context/UserContext";
 import { ConnectedWallet } from "@privy-io/react-auth";
@@ -23,7 +27,7 @@ const Menu = () => {
     userData: { authenticated, ready },
     walletData: { wallets, wallet, statusCreateWallet },
     userFunction: { get, walletLogout },
-    walletFunction: { setWallet, createAdditionalWallet },
+    walletFunction: { setWallet, createAdditionalWallet, exportWallet },
   } = useContext(UserContext);
 
   // Local state to control the dropdown menu
@@ -41,6 +45,21 @@ const Menu = () => {
     // Set the wallet state in the context
     setWallet(selectedWallet);
     handleClose();
+  };
+
+  const handleExport = (
+    walletToExport: ConnectedWallet,
+    e: React.MouseEvent
+  ) => {
+    // Prevent the parent MenuItem onClick from firing
+    e.stopPropagation();
+    // Call the exportWallet function (adjust parameters as needed)
+    exportWallet({ address: walletToExport.address });
+  };
+
+  const handleCopy = (walletToCopy: ConnectedWallet, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(walletToCopy.address);
   };
 
   return authenticated && ready ? (
@@ -66,14 +85,23 @@ const Menu = () => {
           (w) =>
             w.walletClientType === "privy" && (
               <MenuItem
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                }}
                 key={w.address}
                 onClick={() => handleWalletSelect(w)}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
               >
-                {w.address}
+                <ListItemText primary={w.address.substring(0, 20) + "..."} />
+                <Box>
+                  <IconButton onClick={(e) => handleExport(w, e)} size="small">
+                    <IosShareIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton onClick={(e) => handleCopy(w, e)} size="small">
+                    <ContentCopyIcon fontSize="small" />
+                  </IconButton>
+                </Box>
               </MenuItem>
             )
         )}
@@ -88,7 +116,7 @@ const Menu = () => {
                 textAlign: "center",
                 borderRadius: "5px",
               }}
-              primary="CREATE ADDITIONAL WALLET"
+              primary="Create Wallet"
             />
           </MenuItem>
         ) : (
