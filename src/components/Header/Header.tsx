@@ -4,7 +4,10 @@ import Menu from "./Menu";
 
 const Header = () => {
   return (
-    <Container maxWidth="xl" style={{ backgroundColor: "#161618" }}>
+    <Container
+      maxWidth="xl"
+      style={{ backgroundColor: "#161618", position: "fixed" }}
+    >
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           <Logo></Logo>

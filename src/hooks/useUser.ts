@@ -456,6 +456,7 @@ export function useUser() {
       fundUserWallet,
       setWallet,
       createAdditionalWallet,
+      getTokenByName,
     },
     transactionFunction: {
       handleSubmit,

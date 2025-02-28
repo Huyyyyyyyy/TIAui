@@ -44,6 +44,13 @@ export type UserContextType = {
     fundUserWallet: (address: string) => Promise<void>;
     setWallet: React.Dispatch<React.SetStateAction<ConnectedWallet>>;
     createAdditionalWallet: () => Promise<void>;
+    getTokenByName: (name: string) =>
+      | {
+          name: string;
+          address: string;
+          icon: string;
+        }
+      | undefined;
   };
   transactionFunction: {
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
