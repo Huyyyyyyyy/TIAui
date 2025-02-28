@@ -1,4 +1,4 @@
-TIA Project 
+TIA Project  
 
 A React + TypeScript + Vite frontend with Privy wallet integration and a Rust API backend for transaction processing and history retrieval.
 
@@ -25,8 +25,11 @@ A Privy account with appropriate credentials configured
 
 Frontend Setup
 
-
-1. Clone the repository :
+1. Can visit the hosted site for review without any setup (we will keep this host active until 28/3/2024 for you guys to review)
+```js
+Cloudfront URL : https://d1s1ou499za61r.cloudfront.net
+```
+2. Clone the repository :
 
 ```sh
   git clone https://github.com/Huyyyyyyyy/TIAui.git
@@ -34,7 +37,7 @@ Frontend Setup
   code .
 ```
 
-2. Install dependencies :
+3. Install dependencies :
 
 ```sh
 npm install
@@ -42,7 +45,7 @@ npm install
 yarn
 ```
 
-3. Configure Privy appID :  
+4. Configure Privy appID :  
 Put your AppID into main
 ```js
 createRoot(document.getElementById("root")!).render(
@@ -70,13 +73,14 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-4. Start the frontend :
+5. Start the frontend :
 
 ```sh
 npm run dev
 # or
 yarn dev
 ```
+
 
 Project Structure
 
@@ -143,15 +147,80 @@ src
 ### Key Features
 
 - **Privy Wallet Integration:**  
-  Users can sign in with Privy, import wallets using a private key, and manage wallet connections.
+  - Users can sign in with Privy.
+  - Manage wallet connections by picking the coresponding wallet of user
+    ```js
+    const connectCurrentWallet = async () => {
+    try {
+      if (!ready || !authenticated) {
+        console.error("Privy is not ready or user is not authenticated.");
+        return;
+      }
+      if (!user?.wallet) {
+        console.error("User wallet data is not available yet.");
+        return;
+      }
+
+      // Normalize addresses to lower case for reliable comparison
+      const currentWalletAddress = user.wallet.address.toLowerCase();
+      console.log("User wallet address:", currentWalletAddress);
+      console.log("Available wallets:", wallets);
+
+      // Find the wallet in the wallets array that matches the user's wallet address
+      const selectedWallet = wallets.find(
+        (w) => w.address.toLowerCase() === currentWalletAddress
+      );
+
+      if (!selectedWallet) {
+        console.error("No matching wallet found for the current user!");
+        return;
+      }
+      setWallet(selectedWallet);
+      console.log("Connected to wallet:", selectedWallet);
+    } catch (error) {
+      console.error("Failed to connect to wallet:", error);
+    }
+    };
+    ```
+  - Import wallets using a private key
+    ```js
+      const importNewWallet = async () => {
+      try {
+        if (privateKey) {
+          await importWallet({ privateKey: privateKey });
+          const importedWallet = wallets.find((wallet) => wallet.imported);
+          importedWallet ? setWallet(importedWallet) : {};
+        }
+        console.log("Wallet imported successfully:", wallet);
+      } catch (error) {
+        console.error("Failed to import wallet:", error);
+      }
+    };
+    ```
+  - Create additional Wallets
+    ```js
+      const createAdditionalWallet = async () => {
+      try {
+        setStatusCreateWallet("loading");
+        await createWallet({ createAdditional: true });
+        setStatusCreateWallet("success");
+      } catch (e) {
+        console.log(e);
+        setStatusCreateWallet("success");
+        return;
+      }
+    };
+    ```
   
 - **Transaction Processing:**  
-  When a transaction is complete on the frontend, the details are packaged and sent to the Rust API. The API processes the transaction by:
+  When a transaction is complete on the frontend, the details are packaged and sent to the Rust API. The API processes the transaction by
   - Submitting it to a light node.
   - Storing transaction details in a database.
   
 - **History Retrieval:**  
-  The frontend history page calls the Rust API to fetch the transaction history. The API uses the wallet’s address to query the database, retrieves the corresponding block height and namespace, and then queries the light node for transaction details.
+  The frontend history page calls the Rust API to fetch the transaction history.
+  The API uses the wallet’s address to query the database, retrieves the corresponding block height and namespace,
+  and then queries the light node for transaction details.
 
 - **Responsive UI:**  
   Built with Material-UI, the application offers a modern and responsive user interface.
@@ -161,13 +230,15 @@ src
 ## Special Instructions and Requirements
 
 - **Network Configuration:**  
-  Ensure that your Infura API key, Privy configuration, and blockchain network (e.g., Sepolia) are correctly set up. The environment variables in the frontend should match your backend configurations.
+  Ensure that Privy configuration, and blockchain network (e.g., Sepolia) are correctly set up. The environment variables in the frontend should match your backend configurations.
 
 - **Privy Integration:**  
-  Follow the [Privy documentation](https://docs.privy.io/) to correctly set up your PrivyProvider and related hooks. The application relies on Privy for user authentication, wallet import, and signing transactions.
+  Follow the [Privy documentation](https://docs.privy.io/) to correctly set up your PrivyProvider and related hooks.
+  The application relies on Privy for user authentication, wallet import, and signing transactions.
 
 - **Rust API Setup:**  
-  The Rust API must be configured to connect to a light node for your chosen network and to your database for transaction history. Adjust the code in `main.rs` and related modules accordingly.
+  Make sure you successfully run the Rust API (currently our Rust API just enable on AWS Lambda function with the static function url)
+  We will keep the function active for you guys to do the review of demo sites for a month then we will disable this function at 28/3/2024
 
 - **Database:**  
   Ensure that your database is running and that the Rust API has correct connection details. The database stores transaction history, and the history page fetches this data via the API.
