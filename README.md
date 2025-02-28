@@ -23,6 +23,12 @@ Rust (with Cargo) installed on your system for the backend
 An Infura API key (or similar) configured for your network (e.g. Sepolia)
 A Privy account with appropriate credentials configured
 
+Please be awared of we also have Backend Rust API 
+Here is this resource :
+```js
+https://github.com/Huyyyyyyyy/TIASvc.git
+```
+
 Frontend Setup
 
 1. Can visit the hosted site for review without any setup (we will keep this host active until 28/3/2024 for you guys to review)
