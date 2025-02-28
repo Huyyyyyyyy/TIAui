@@ -2,14 +2,14 @@ import { Container } from "@mui/material";
 
 const Footer = () => {
   return (
-    <footer style={{ backgroundColor: "#FFFFF5DB" }}>
+    <footer style={{ backgroundColor: "#161618" }}>
       <Container
-        maxWidth="xl"
         style={{
           backgroundColor: "#161618",
           padding: "10px 50px",
           display: "flex",
           margin: 0,
+          width: "100%",
         }}
       >
         <span
